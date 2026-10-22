@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InsightVault AI - Research Assistant</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#0f172a',
+                        darkPanel: '#1e293b',
+                        primary: '#3b82f6',
+                        primaryHover: '#2563eb'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-50 dark:bg-darkBg text-gray-900 dark:text-gray-100 font-inter h-screen flex overflow-hidden transition-colors duration-300">
+
+    <!-- Sidebar: Sources & Upload -->
+    <aside class="w-80 bg-white dark:bg-darkPanel border-r border-gray-200 dark:border-gray-700 flex flex-col transition-colors duration-300">
+        <div class="p-5 border-b border-gray-200 dark:border-gray-700">
+            <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-teal-400 flex items-center gap-2">
+                <i class="fa-solid fa-vault text-blue-500"></i> InsightVault AI
+            </h1>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Research Assistant powered by RAG</p>
+        </div>
+
+        <!-- Upload Section -->
+        <div class="p-5 border-b border-gray-200 dark:border-gray-700">
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3">Add Knowledge</h2>
+            <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center hover:border-primary dark:hover:border-primary transition-colors cursor-pointer relative group" id="drop-zone">
+                <i class="fa-solid fa-cloud-arrow-up text-2xl text-gray-400 group-hover:text-primary transition-colors mb-2"></i>
+                <p class="text-sm text-gray-600 dark:text-gray-300">Drag & drop PDF/TXT</p>
+                <p class="text-xs text-gray-400 mt-1">or click to browse</p>
+                <input type="file" id="file-upload" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept=".pdf,.txt" multiple>
+            </div>
+            <div id="upload-status" class="hidden mt-3 text-sm flex items-center gap-2">
+                <i class="fa-solid fa-circle-notch fa-spin text-primary"></i>
+                <span id="upload-status-text" class="text-gray-600 dark:text-gray-300">Uploading...</span>
+            </div>
+        </div>
+
+        <!-- Sources Section -->
+        <div class="p-5 flex-1 overflow-y-auto custom-scrollbar">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Knowledge Base</h2>
+                <button id="refresh-sources" class="text-gray-400 hover:text-primary transition-colors" title="Refresh">
+                    <i class="fa-solid fa-sync-alt"></i>
+                </button>
+            </div>
+            <ul id="sources-list" class="space-y-2">
+                <!-- Sources will be dynamically populated here -->
+                <li class="text-sm text-gray-500 dark:text-gray-400 italic">No sources added yet.</li>
+            </ul>
+        </div>
+        
+        <!-- Controls -->
+        <div class="p-4 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center">
+            <button id="theme-toggle" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors focus:outline-none">
+                <i class="fa-solid fa-moon dark:hidden"></i>
+                <i class="fa-solid fa-sun hidden dark:block"></i>
+            </button>
+            <span class="text-xs text-gray-500 dark:text-gray-500">v1.0.0</span>
+        </div>
+    </aside>
+
+    <!-- Main Chat Area -->
+    <main class="flex-1 flex flex-col relative bg-gray-50 dark:bg-darkBg transition-colors duration-300">
+        
+        <!-- Chat History -->
+        <div id="chat-container" class="flex-1 overflow-y-auto p-4 sm:p-8 custom-scrollbar scroll-smooth">
+            <!-- Welcome Message -->
+            <div class="flex flex-col items-center justify-center h-full text-center" id="welcome-screen">
+                <div class="w-20 h-20 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-6 shadow-lg shadow-blue-500/20">
+                    <i class="fa-solid fa-robot text-4xl text-blue-500"></i>
+                </div>
+                <h2 class="text-2xl font-bold mb-2">How can I help with your research?</h2>
+                <p class="text-gray-500 dark:text-gray-400 max-w-md mx-auto mb-8">
+                    Upload a research paper on the left, then ask me anything about it. I will provide answers grounded only in the documents you provide.
+                </p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-2xl text-left">
+                    <div class="suggestion-card p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-darkPanel cursor-pointer hover:border-primary dark:hover:border-primary transition-colors">
+                        <p class="text-sm font-medium">Summarize the main findings of the uploaded paper.</p>
+                    </div>
+                    <div class="suggestion-card p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-darkPanel cursor-pointer hover:border-primary dark:hover:border-primary transition-colors">
+                        <p class="text-sm font-medium">What is the methodology used in this study?</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Chat messages will be appended here -->
+        </div>
+
+        <!-- Input Area -->
+        <div class="p-4 sm:p-6 bg-white/80 dark:bg-darkPanel/80 backdrop-blur-md border-t border-gray-200 dark:border-gray-700">
+            <div class="max-w-4xl mx-auto relative flex items-end gap-2">
+                <div class="flex-1 relative shadow-sm rounded-2xl bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 focus-within:border-primary dark:focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all duration-200">
+                    <textarea id="query-input" rows="1" class="w-full max-h-32 bg-transparent text-gray-900 dark:text-gray-100 placeholder-gray-500 rounded-2xl py-3 px-4 pr-12 resize-none focus:outline-none custom-scrollbar" placeholder="Ask a question about your research..." style="min-height: 52px;"></textarea>
+                    
+                    <button id="send-btn" class="absolute right-2 bottom-2 p-2 bg-primary text-white rounded-xl hover:bg-primaryHover transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center h-9 w-9">
+                        <i class="fa-solid fa-paper-plane text-sm"></i>
+                    </button>
+                </div>
+            </div>
+            <p class="text-center text-xs text-gray-500 mt-3">InsightVault AI can make mistakes. Consider verifying important information.</p>
+        </div>
+
+    </main>
+
+    <!-- Template for Source Chunks Modal (Hidden by default) -->
+    <div id="sources-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center opacity-0 transition-opacity duration-300">
+        <div class="bg-white dark:bg-darkPanel rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col transform scale-95 transition-transform duration-300">
+            <div class="p-5 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <h3 class="text-lg font-semibold flex items-center gap-2"><i class="fa-solid fa-book-open text-primary"></i> Retrieved Context</h3>
+                <button id="close-modal" class="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
+                    <i class="fa-solid fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="p-5 overflow-y-auto custom-scrollbar flex-1 space-y-4" id="modal-content">
+                <!-- Chunks go here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js?v=3"></script>
+</body>
+</html>

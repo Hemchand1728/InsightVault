@@ -1,0 +1,31 @@
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Vector DB
+vector_db/
+!vector_db/.gitkeep
+
+# Data
+data/research_papers/
+!data/research_papers/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# VS Code
+.vscode/
+
+# MacOS
+.DS_Store
